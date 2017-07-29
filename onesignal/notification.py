@@ -10,7 +10,7 @@ class Notification:
         self.post_body["contents"] = contents
 
     def set_parameter(self, name, value):
-        # there may be a fields that OneSignal can add later
+        # there may be a field that OneSignal can add later
         # if so, user may enter the field name starting with "!" sign
         # then the field name wont be looked up in allowed fields and forced to be visit
         if name and name[0] == "!":
