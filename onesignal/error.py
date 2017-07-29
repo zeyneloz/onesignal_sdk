@@ -1,0 +1,2 @@
+class OneSignalError(Exception):
+    pass
