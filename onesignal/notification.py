@@ -10,14 +10,17 @@ class Notification:
         self.post_body["contents"] = contents
 
     def set_parameter(self, name, value):
-        # there may be a field that OneSignal can add later
-        # if so, user may enter the field name starting with "!" sign
-        # then the field name wont be looked up in allowed fields and forced to be visit
-        if name and name[0] == "!":
+        """
+        Set a parameter of notification body
+        There may be a field that OneSignal can add later
+        If so, user may enter the field name starting with "!" sign
+        Then the field name wont be looked up in allowed fields and forced to be visit
+        """
+        if name[0] == "!":
             name = name[1:]
         elif name not in ALLOWED_FIELDS:
-            raise ValidationError(("This field name isn't appear in the documentation. "
-                                   "But if you are sure to add it, begin with an exclamation mark (!) to set it. "
+            raise ValidationError(("This field name is not present in documentation. "
+                                   "But if you are sure to add it, you should add a exclamation mark (!) to set it. "
                                    "Example usage: !{0}").format(name))
         self.post_body[name] = value
 
