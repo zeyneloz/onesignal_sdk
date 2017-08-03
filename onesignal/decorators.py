@@ -1,5 +1,5 @@
 from functools import wraps
-from .error import ValidationError
+from .error import OneSignalError
 
 
 def check_in_attributes(attr_names):
@@ -13,7 +13,7 @@ def check_in_attributes(attr_names):
         def wrapper(self, *args, **kwargs):
             for attr in attr_names:
                 if getattr(self, attr, None) is None:
-                    raise ValidationError("{0} must be defined".format(attr))
+                    raise OneSignalError("{0} must be defined".format(attr))
             return func(self, *args, **kwargs)
         return wrapper
     return layer
