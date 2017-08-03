@@ -1,5 +1,5 @@
 from .constants import ALLOWED_FIELDS
-from .error import ValidationError
+from .error import OneSignalError
 
 
 class Notification:
@@ -19,7 +19,7 @@ class Notification:
         if name[0] == "!":
             name = name[1:]
         elif name not in ALLOWED_FIELDS:
-            raise ValidationError(("This field name is not present in documentation. "
+            raise OneSignalError(("This field name is not present in documentation. "
                                    "But if you are sure to add it, you should add a exclamation mark (!) to set it. "
                                    "Example usage: !{0}").format(name))
         self.post_body[name] = value
