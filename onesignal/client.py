@@ -3,7 +3,7 @@ A library that provides a python interface to OneSignal API
 """
 from .constants import ENDPOINTS
 from .decorators import check_in_attributes
-from .error import ValidationError
+from .error import OneSignalError
 from .request import basic_auth_request
 
 
@@ -22,7 +22,7 @@ class Client:
     @app.setter
     def app(self, value):
         if value is not None and (("app_auth_key" not in value) or ("app_id" not in value)):
-            raise ValidationError("app must contain both app_auth_key and app_id")
+            raise OneSignalError("app must contain both app_auth_key and app_id")
         self._app = value
 
     def _get_path(self, path_name, **kwargs):
@@ -33,7 +33,7 @@ class Client:
 
     def send_notification(self, notification):
         if getattr(notification, "post_body", None) is None:
-            raise ValidationError("Notification object must have a post_body")
+            raise OneSignalError("Notification object must have a post_body")
         # we do not need deep copy
         post_body = dict(notification.post_body)
         url = self._get_path("NOTIFICATIONS_PATH")
@@ -44,7 +44,7 @@ class Client:
             post_body["app_ids"] = self.apps
             return basic_auth_request('POST', url, token=self.user_auth_key, payload=post_body)
         else:
-            raise ValidationError('You must set either an "app" or "apps" on Client')
+            raise OneSignalError('You must set either an "app" or "apps" on Client')
 
     @check_in_attributes(["app"])
     def cancel_notification(self, notification_id):
