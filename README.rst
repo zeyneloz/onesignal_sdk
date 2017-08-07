@@ -36,7 +36,7 @@ Usage
 
 .. code:: python
 
-    import onesignal_sdk
+    import onesignal as onesignal_sdk
 
 Creating a client
 ~~~~~~~~~~~~~~~~~
