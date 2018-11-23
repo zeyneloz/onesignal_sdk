@@ -1,7 +1,3 @@
-from .constants import ALLOWED_FIELDS
-from .error import OneSignalError
-
-
 class Notification:
     def __init__(self, contents=None):
         self.post_body = {"contents": contents}
@@ -18,10 +14,6 @@ class Notification:
         """
         if name[0] == "!":
             name = name[1:]
-        elif name not in ALLOWED_FIELDS:
-            raise OneSignalError(("This field name is not present in documentation. "
-                                   "But if you are sure to add it, you should add a exclamation mark (!) to set it. "
-                                   "Example usage: !{0}").format(name))
         self.post_body[name] = value
 
     def set_included_segments(self, included_segments):
