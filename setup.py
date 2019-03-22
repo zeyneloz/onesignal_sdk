@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 # To use a consistent encoding
 from codecs import open
 from os import path
@@ -12,13 +12,13 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 setup(
     name='onesignal_sdk',
 
-    version='0.2.0',
+    version='1.0.0',
 
-    description='A Python wrapper around the OneSignal API Edit Add topics',
+    description='A Python wrapper around the OneSignal API',
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/fxgx/onesignal_sdk',
+    url='https://github.com/zeyneloz/onesignal_sdk',
 
     # Author details
     author='Oyku and Zeynel',
@@ -41,6 +41,7 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
 
     keywords='onesignal onesignal-api one-signal push-notification',
@@ -48,6 +49,8 @@ setup(
     packages=['onesignal'],
 
     install_requires=['requests'],
+
+    test_suite="tests",
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
