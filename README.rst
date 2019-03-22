@@ -48,14 +48,8 @@ user\_auth\_key and REST API Key (app\_auth\_key) on OneSignal
 .. code:: python
 
     onesignal_client = onesignal_sdk.Client(user_auth_key="XXXXX",
-                                            app={"app_auth_key": "XXXX", "app_id": "YYYYY"})
-
-You can also create a Client for multiple Apps
-
-.. code:: python
-
-    onesignal_client = onesignal_sdk.Client(user_auth_key="XXXXX",
-                                            apps=["id1", "id2", "id3"])
+                                        app_auth_key="XXXX",
+                                        app_id="APPID")
 
 You can always create a Client with no credential and set them later:
 
@@ -63,48 +57,39 @@ You can always create a Client with no credential and set them later:
 
     onesignal_client = onesignal_sdk.Client()
     onesignal_client.user_auth_key = "XXXXX"
-    onesignal_client.app = {"app_auth_key": "XXXX", "app_id": "YYYYY"}
-
-Note that, app must be a dictionary and must have "app\_auth\_key" and
-"app\_id". It will raise OneSignalError otherwise:
-
-.. code:: python
-
-    from onesignal_sdk.error import OneSignalError
-
-    try:
-        onesignal_client = onesignal_sdk.Client()
-        onesignal_client.app = {"app_auth_key": "XXXX"}
-    except OneSignalError as e:
-        print(e)
+    onesignal_client.app_auth_key = "XXXXX"
+    onesignal_client.app_id = "APPID"
 
 Creating a notification
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: python
 
-    new_notification = onesignal_sdk.Notification(contents={"en": "Message", "tr": "Mesaj"})
+    new_notification = onesignal_sdk.Notification(post_body={"contents": {"en": "Message", "tr": "Mesaj"}})
 
 if you want to change contents later:
 
 .. code:: python
 
-    new_notification = onesignal_sdk.Notification(contents={"en": "Message", "tr": "Mesaj"})
+    new_notification = onesignal_sdk.Notification(post_body={"contents": {"en": "Message", "tr": "Mesaj"}})
     ...
     ...
-    new_notification.set_contents(contents={"en": "New message"})
-    # OR
-    new_notification.post_body["contents"] = {"en": "New message"}
+    new_notification.post_body["content"] = {"en": "New message"}
 
 You can set filters, data, buttons and all of the fields available on
 `OneSignal
 Documentation <https://documentation.onesignal.com/reference#create-notification>`__
-by using ``.set_parameter(name, value)`` method:
+by updating ``post_body`` of notification:
 
 .. code:: python
 
-    new_notification.set_parameter("data", {"foo": 123, "bar": "foo"})
-    new_notification.set_parameter("headings", {"en": "English Title"})
+    new_notification.post_body["data"] = {"foo": 123, "bar": "foo"}
+    new_notification.post_body["headings"] = {"en": "English Title"}
+    new_notification.post_body["included_segments"] = ["Active Users", "Inactive Users"]
+    new_notification.post_body["filters"] = [
+        {"field": "tag", "key": "level", "relation": "=", "value": "10"},
+        {"operator": "OR"}, {"field": "tag", "key": "level", "relation": "=", "value": "20"}
+    ]
 
 Sending push notification
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -114,36 +99,14 @@ To can send a notification to Segments:
 .. code:: python
 
     # create a onesignal client
-    onesignal_client = onesignal_sdk.Client(user_auth_key="XXXX",
-                                            app={"app_auth_key": "XXXXXX",
-                                                 "app_id": "XXXX-XXXX-XXX"})
+    onesignal_client = onesignal_sdk.Client(app_auth_key="XXXX", app_id="APPID")
 
     # create a notification
-    new_notification = onesignal_sdk.Notification(contents={"en": "Message"})
-    new_notification.set_parameter("headings", {"en": "Title"})
-
-    # set target Segments
-    new_notification.set_included_segments(["All"])
-    new_notification.set_excluded_segments(["Inactive Users"])
-
-    # send notification, it will return a response
-    onesignal_response = onesignal_client.send_notification(new_notification)
-    print(onesignal_response.status_code)
-    print(onesignal_response.json())
-
-To send a notification using Filters:
-
-.. code:: python
-
-    # create a notification
-    new_notification = onesignal_sdk.Notification(contents={"en": "Message"})
-    new_notification.set_parameter("headings", {"en": "Title"})
-
-    # set filters
-    new_notification.set_filters([
-        {"field": "tag", "key": "level", "relation": ">", "value": "10"},
-        {"field": "amount_spent", "relation": ">", "value": "0"}
-    ])
+    new_notification = onesignal_sdk.Notification(post_body={
+        "contents": {"en": "Message", "tr": "Mesaj"},
+        "included_segments": ["Active Users"],
+        "filters": [{"field": "tag", "key": "level", "relation": "=", "value": "10"}]
+    })
 
     # send notification, it will return a response
     onesignal_response = onesignal_client.send_notification(new_notification)
@@ -154,37 +117,26 @@ To send a notification to specific devices:
 
 .. code:: python
 
-    # create a notification
-    new_notification = onesignal_sdk.Notification(contents={"en": "Message"})
-    new_notification.set_parameter("headings", {"en": "Title"})
-
-    # set filters
-    new_notification.set_target_devices(["id1", "id2"])
+    onesignal_client = onesignal_sdk.Client(app_auth_key="XXXX", app_id="APPID")
+    new_notification = onesignal_sdk.Notification(post_body={
+        "contents": {"en": "Message"},
+        "include_player_ids": ["id1", "id2"],
+    })
 
     # send notification, it will return a response
     onesignal_response = onesignal_client.send_notification(new_notification)
     print(onesignal_response.status_code)
     print(onesignal_response.json())
 
-Note that ``.send_notification(notification)`` method will send the
-notification to the app specified during the creation of Client object.
-If you want to send notification to multiple apps, you must set apps
-array instead:
-
-.. code:: python
-
-    onesignal_client.app = None
-    onesignal_client.apps = ["app_id_1", "app_id_2"]
-
 Cancelling a notification
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: python
 
-    onesignal_client = onesignal_sdk.Client(user_auth_key="XXXX",
-                                            app={"app_auth_key": "XXXXXX",
-                                                 "app_id": "XXXX-XXXX-XXX"})
-                                                 
+    onesignal_client = onesignal_sdk.Client(user_auth_key="XXXXX",
+                                        app_auth_key="XXXX",
+                                        app_id="APPID")
+
     onesignal_response = onesignal_client.cancel_notification("notification_id")
     print(onesignal_response.status_code)
     print(onesignal_response.json())
@@ -225,10 +177,10 @@ Creating an app
 
 .. code:: python
 
-    onesignal_client = onesignal_sdk.Client(user_auth_key="XXXX",
-                                            app={"app_auth_key": "XXXXXX",
-                                                 "app_id": "XXXX-XXXX-XXX"})
-                                                 
+    onesignal_client = onesignal_sdk.Client(user_auth_key="XXXXX",
+                                        app_auth_key="XXXX",
+                                        app_id="APPID")
+
     app_body = {
         "name": "Test App",
         "apns_env": "production"
@@ -243,10 +195,10 @@ Updating an app
 
 .. code:: python
 
-    onesignal_client = onesignal_sdk.Client(user_auth_key="XXXX",
-                                            app={"app_auth_key": "XXXXXX",
-                                                 "app_id": "XXXX-XXXX-XXX"})
-                                                 
+    onesignal_client = onesignal_sdk.Client(user_auth_key="XXXXX",
+                                        app_auth_key="XXXX",
+                                        app_id="APPID")
+
     app_body = {
         "name": "New App",
         "gcm_key": "XX-XXX-XXXXX"
@@ -276,10 +228,10 @@ Adding a device
 
 .. code:: python
 
-    onesignal_client = onesignal_sdk.Client(user_auth_key="XXXX",
-                                            app={"app_auth_key": "XXXXXX",
-                                                 "app_id": "XXXX-XXXX-XXX"})
-                                                 
+    onesignal_client = onesignal_sdk.Client(user_auth_key="XXXXX",
+                                        app_auth_key="XXXX",
+                                        app_id="APPID")
+
     device_body = {
         "device_type": 1,
         "language": "tr"
@@ -292,9 +244,9 @@ Editing a device
 
 .. code:: python
 
-    onesignal_client = onesignal_sdk.Client(user_auth_key="XXXX",
-                                            app={"app_auth_key": "XXXXXX",
-                                                 "app_id": "XXXX-XXXX-XXX"})
+    onesignal_client = onesignal_sdk.Client(user_auth_key="XXXXX",
+                                        app_auth_key="XXXX",
+                                        app_id="APPID")
                                                  
     device_body = {
         "device_type": 1,
