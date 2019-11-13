@@ -8,11 +8,11 @@ from .request import basic_auth_request
 
 
 class Client:
-    def __init__(self, user_auth_key=None, app_auth_key=None, app_id=None):
+    def __init__(self, user_auth_key=None, app_auth_key=None, app_id=None, api_root=None):
         self.user_auth_key = user_auth_key
         self.app_auth_key = app_auth_key
         self.app_id = app_id
-        self.API_ROOT = ENDPOINTS["API_ROOT"]
+        self.API_ROOT = api_root or ENDPOINTS["API_ROOT"]
 
     def _get_path(self, path_name, **kwargs):
         """
