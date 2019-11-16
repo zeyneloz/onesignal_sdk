@@ -12,7 +12,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 setup(
     name='onesignal_sdk',
 
-    version='1.0.0',
+    version='1.1.0',
 
     description='A Python wrapper around the OneSignal API',
     long_description=long_description,
@@ -22,7 +22,7 @@ setup(
 
     # Author details
     author='Oyku and Zeynel',
-    author_email='zeynel.fxgx@gmail.com',
+    author_email='ozdemir.zynl@gmail.com',
 
     license='MIT',
 
@@ -42,6 +42,7 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
     ],
 
     keywords='onesignal onesignal-api one-signal push-notification',
