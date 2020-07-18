@@ -1,277 +1,387 @@
-onesignal\_sdk
-==============
+onesignal_sdk
+=============
 
-A Python client library for `OneSignal <https://onesignal.com/>`__ API.
+.. image:: https://img.shields.io/pypi/pyversions/onesignal-sdk.svg
+    :target: https://pypi.org/project/onesignal-sdk/
+
+.. image:: https://img.shields.io/pypi/v/onesignal-sdk.svg
+    :target: https://pypi.org/project/onesignal-sdk/
+
+.. image:: https://travis-ci.com/zeyneloz/onesignal_sdk.svg?branch=master
+    :target: https://travis-ci.com/zeyneloz/onesignal_sdk
+
+.. image:: https://codecov.io/gh/zeyneloz/onesignal_sdk/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/zeyneloz/onesignal_sdk
+
+
+A Python client library for `OneSignal <https://onesignal.com/>`__ REST API. Supports **async/await**.
+
+Please read `v1.x documentation <https://github.com/zeyneloz/onesignal_sdk/tree/v1.x>`__ for older versions.
 
 Table of Contents
 -----------------
 
 -  `Installation <#installation>`__
--  `Usage <*usage>`__
+-  `Example Usage <#example-usage>`__
+-  `Async Example Usage <#async-example-usage>`__
+-  `Handling Exceptions <#handling-exceptions>`__
+-  `API methods <#api-methods>`__
 
-   -  `Creating a service client <#creating-a-client>`__
-   -  `Creating a notification <#creating-a-notification>`__
-   -  `Sending push notification <#sending-push-notification>`__
-   -  `Cancelling a notification <#cancelling-a-notification>`__
-   -  `Viewing push notifications <#viewing-push-notifications>`__
-   -  `Viewing a push notification <#viewing-a-push-notification>`__
-   -  `Viewing apps <#viewing-apps>`__
-   -  `Creating an app <#creating-an-app>`__
-   -  `Updating an app <#updating-an-app>`__
-   -  `Viewing devices <#viewing-devices>`__
-   -  `Adding a device <#adding-a-device>`__
-   -  `Editing a device <#editing-a-device>`__
-   -  `CSV Export <#csv-export>`__
-   -  `Opening track <#opening-track>`__
+    -   `.send_notification <#send-notification>`__
+    -   `.cancel_notification <#cancel-notification>`__
+    -   `.view_notification <#view-notification>`__
+    -   `.view_notifications <#view-notifications>`__
+    -   `.notification_history <#notification-history>`__
+    -   `.view_device <#view-device>`__
+    -   `.view_devices <#view-devices>`__
+    -   `.add_device <#add-device>`__
+    -   `.edit_device <#edit-device>`__
+    -   `.edit_tags <#edit-tags>`__
+    -   `.new_session <#new-session>`__
+    -   `.new_purchase <#new-purchase>`__
+    -   `.csv_export <#csv-export>`__
+    -   `.create_segment <#create-segment>`__
+    -   `.delete_segment <#delete-segment>`__
+    -   `.view_outcomes <#view-outcomes>`__
+    -   `.view_apps <#view-apps>`__
+    -   `.view_app <#view-app>`__
+    -   `.create_app <#create-app>`__
+    -   `.update_app <#update-app>`__
+
+-  `License <#license>`__
 
 Installation
 ------------
 
 ::
 
-    pip install onesignal_sdk
+    pip install onesignal-sdk
 
-Usage
------
+Example Usage
+-------------
 
-.. code:: python
+You can think this library as a wrapper around OneSignal REST API. It is fairly simple to use:
 
-    import onesignal as onesignal_sdk
-
-Creating a client
-~~~~~~~~~~~~~~~~~
-
-You can create a OneSignal Client as shown below. You can find your
-user\_auth\_key and REST API Key (app\_auth\_key) on OneSignal
-``Account & API Keys`` page.
+- Create an instance of **Client** with your credentials. `user_auth_key` is not required but necessary for some API calls.
+- Build your request body and call related method on the client.
+- Client will make the request with required authentication headers and parse the response for you.
 
 .. code:: python
 
-    onesignal_client = onesignal_sdk.Client(user_auth_key="XXXXX",
-                                        app_auth_key="XXXX",
-                                        app_id="APPID")
+    from onesignal_sdk.client import Client
 
-You can always create a Client with no credential and set them later:
+    client = Client(app_id=APP_ID, rest_api_key=REST_API_KEY, user_auth_key=USER_AUTH_KEY)
 
-.. code:: python
-
-    onesignal_client = onesignal_sdk.Client()
-    onesignal_client.user_auth_key = "XXXXX"
-    onesignal_client.app_auth_key = "XXXXX"
-    onesignal_client.app_id = "APPID"
-
-Creating a notification
-~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code:: python
-
-    new_notification = onesignal_sdk.Notification(post_body={"contents": {"en": "Message", "tr": "Mesaj"}})
-
-if you want to change contents later:
-
-.. code:: python
-
-    new_notification = onesignal_sdk.Notification(post_body={"contents": {"en": "Message", "tr": "Mesaj"}})
-    ...
-    ...
-    new_notification.post_body["content"] = {"en": "New message"}
-
-You can set filters, data, buttons and all of the fields available on
-`OneSignal
-Documentation <https://documentation.onesignal.com/reference#create-notification>`__
-by updating ``post_body`` of notification:
-
-.. code:: python
-
-    new_notification.post_body["data"] = {"foo": 123, "bar": "foo"}
-    new_notification.post_body["headings"] = {"en": "English Title"}
-    new_notification.post_body["included_segments"] = ["Active Users", "Inactive Users"]
-    new_notification.post_body["filters"] = [
-        {"field": "tag", "key": "level", "relation": "=", "value": "10"},
-        {"operator": "OR"}, {"field": "tag", "key": "level", "relation": "=", "value": "20"}
-    ]
-
-Sending push notification
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To can send a notification to Segments:
-
-.. code:: python
-
-    # create a onesignal client
-    onesignal_client = onesignal_sdk.Client(app_auth_key="XXXX", app_id="APPID")
-
-    # create a notification
-    new_notification = onesignal_sdk.Notification(post_body={
-        "contents": {"en": "Message", "tr": "Mesaj"},
-        "included_segments": ["Active Users"],
-        "filters": [{"field": "tag", "key": "level", "relation": "=", "value": "10"}]
-    })
-
-    # send notification, it will return a response
-    onesignal_response = onesignal_client.send_notification(new_notification)
-    print(onesignal_response.status_code)
-    print(onesignal_response.json())
-
-To send a notification to specific devices:
-
-.. code:: python
-
-    onesignal_client = onesignal_sdk.Client(app_auth_key="XXXX", app_id="APPID")
-    new_notification = onesignal_sdk.Notification(post_body={
-        "contents": {"en": "Message"},
-        "include_player_ids": ["id1", "id2"],
-    })
-
-    # send notification, it will return a response
-    onesignal_response = onesignal_client.send_notification(new_notification)
-    print(onesignal_response.status_code)
-    print(onesignal_response.json())
-
-Cancelling a notification
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code:: python
-
-    onesignal_client = onesignal_sdk.Client(user_auth_key="XXXXX",
-                                        app_auth_key="XXXX",
-                                        app_id="APPID")
-
-    onesignal_response = onesignal_client.cancel_notification("notification_id")
-    print(onesignal_response.status_code)
-    print(onesignal_response.json())
-
-Viewing push notifications
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code:: python
-
-    onesignal_response = onesignal_client.view_notifications(query={"limit": 30, "offset": 0})
-    if onesignal_response.status_code == 200:
-        print(onesignal_response.json())
-
-Viewing a push notification
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code:: python
-
-    onesignal_response = onesignal_client.view_notification("notification_id")
-    if onesignal_response.status_code == 200:
-        print(onesignal_response.json())
-
-Viewing apps
-~~~~~~~~~~~~
-
-.. code:: python
-
-    onesignal_response = onesignal_client.view_apps()
-
-You can also view a single app:
-
-.. code:: python
-
-    onesignal_response = onesignal_client.view_app("app_id")
-
-Creating an app
-~~~~~~~~~~~~~~~
-
-.. code:: python
-
-    onesignal_client = onesignal_sdk.Client(user_auth_key="XXXXX",
-                                        app_auth_key="XXXX",
-                                        app_id="APPID")
-
-    app_body = {
-        "name": "Test App",
-        "apns_env": "production"
+    notification_body = {
+        'contents': {'tr': 'Yeni bildirim', 'en': 'New notification'},
+        'included_segments': ['Active Users'],
+        'filters': [{'field': 'tag', 'key': 'level', 'relation': '>', 'value': 10}],
     }
+    response = client.send_notification(notification_body)
+    print(response.body)
 
-    onesignal_response = onesignal_client.create_app(app_body)
-    if onesignal_response.status_code == 200:
-        print(onesignal_response.json())
-
-Updating an app
-~~~~~~~~~~~~~~~
+Async Example Usage
+-------------------
+**AsyncClient** and **Client** shares exactly the same interface, method signatures. All the examples for **Client**  in this
+documentation is also valid for **AsyncClient**.
 
 .. code:: python
 
-    onesignal_client = onesignal_sdk.Client(user_auth_key="XXXXX",
-                                        app_auth_key="XXXX",
-                                        app_id="APPID")
+    from onesignal_sdk.client import AsyncClient
 
-    app_body = {
-        "name": "New App",
-        "gcm_key": "XX-XXX-XXXXX"
+    async def main():
+        client = AsyncClient(app_id=APP_ID, rest_api_key=REST_API_KEY)
+
+        notification_body = {'contents': ...}
+        response = await client.send_notification(notification_body)
+        print(response.body)
+
+Handling Response
+-----------------
+We are using `httpx <https://github.com/encode/httpx>`_ library for making http requests underneath. Responses from OneSignal
+REST API are parsed as JSON and returned to you as an instance of `OneSignalResponse`, which is just a simple class
+consisting of following attributes:
+
+- **.body**: JSON parsed body of the response, as a Python dictionary.
+- **.status_code**: HTTP status code of the response.
+- **.http_response**: Original `httpx.Response` object, in case you want to access more attributes.
+
+Sample code:
+
+.. code:: python
+
+    client = AsyncClient(...)
+    response = await client.view_apps()
+    print(response.body) # JSON parsed response
+    print(response.status_code) # Status code of response
+    print(response.http_response) # Original http response object.
+
+Handling Exceptions
+-------------------
+
+An instance of **OneSignalHTTPError** is raised whenever http responses have a status code other than 2xx.
+For instance, if status code of an http response is 404, `OneSignalHTTPError` is raised with additional details. See
+the sample snippet below, error handling is the same of `AsyncClient`
+
+.. code:: python
+
+    from onesignal_sdk.client import Client
+    from onesignal_sdk.error import OneSignalHTTPError
+
+    # Create a One Signal client using API KEYS.
+    client = Client(app_id=APP_ID, rest_api_key=REST_API_KEY, user_auth_key=USER_AUTH_KEY)
+    notification_body = {
+        'contents': {'tr': 'Yeni bildirim', 'en': 'New notification'},
+        'included_segments': ['Active Users'],
+        'filters': [{'field': 'tag', 'key': 'level', 'relation': '>', 'value': 10}],
     }
+    response = client.send_notification(notification_body)
+    print(response.body)
 
-    onesignal_response = onesignal_client.update_app(app_id="XXXX", app_body=app_body)
-    if onesignal_response.status_code == 200:
-        print(onesignal_response.json())
+    try:
+        notification_body = {
+            'contents': {'en': 'New notification'},
+            'included_segments': ['Active Users'],
+        }
 
-Viewing devices
-~~~~~~~~~~~~~~~
+        # Make a request to OneSignal and parse response
+        response = client.send_notification(notification_body)
+        print(response.body) # JSON parsed response
+        print(response.status_code) # Status code of response
+        print(response.http_response) # Original http response object.
+
+    except OneSignalHTTPError as e: # An exception is raised if response.status_code != 2xx
+        print(e)
+        print(e.status_code)
+        print(e.http_response.json()) # You can see the details of error by parsing original response
+
+API methods
+===========
+
+send_notification
+-----------------
+Reference: https://documentation.onesignal.com/reference/create-notification
 
 .. code:: python
 
-    onesignal_response = onesignal_client.view_devices(query={"limit": 20})
-    if onesignal_response.status_code == 200:
-        print(onesignal_response.json())
-
-You can also view a device:
-
-.. code:: python
-
-    onesignal_response = onesignal_client.view_device("device_id")
-
-Adding a device
-~~~~~~~~~~~~~~~
-
-.. code:: python
-
-    onesignal_client = onesignal_sdk.Client(user_auth_key="XXXXX",
-                                        app_auth_key="XXXX",
-                                        app_id="APPID")
-
-    device_body = {
-        "device_type": 1,
-        "language": "tr"
+    notification_body = {
+        'contents': {'en': 'New notification'},
+        'included_segments': ['Active Users'],
     }
+    response = client.send_notification(notification_body)
 
-    onesignal_response = onesignal_client.create_device(device_body=device_body)
-
-Editing a device
-~~~~~~~~~~~~~~~~
+cancel_notification
+-------------------
+Reference: https://documentation.onesignal.com/reference/cancel-notification
 
 .. code:: python
 
-    onesignal_client = onesignal_sdk.Client(user_auth_key="XXXXX",
-                                        app_auth_key="XXXX",
-                                        app_id="APPID")
-                                                 
-    device_body = {
-        "device_type": 1,
-        "language": "en"
+    response = client.cancel_notification('notification-id')
+
+view_notification
+-----------------
+Reference: https://documentation.onesignal.com/reference/view-notification
+
+.. code:: python
+
+    response = client.view_notification('notification-id')
+
+view_notifications
+------------------
+Reference: https://documentation.onesignal.com/reference/view-notifications
+
+.. code:: python
+
+    request_query = {'limit': 5, 'offset': 2}
+    response = client.view_notification(request_query)
+
+notification_history
+--------------------
+Reference: https://documentation.onesignal.com/reference/notification-history
+
+.. code:: python
+
+    body = {
+        'events': 'clicked',
+        'email': 'test@email.com'
     }
+    response = client.notification_history('notification-id', body)
 
-    onesignal_response = onesignal_client.update_device(device_id="device_id", device_body=device_body)
-
-CSV Export
-~~~~~~~~~~
-
-.. code:: python
-
-    onesignal_response = onesignal_client.csv_export(post_body={"extra_fields": ["location"]})
-    if onesignal_response.status_code == 200:
-        print(onesignal_response.json())
-
-Opening track
-~~~~~~~~~~~~~
+view_device
+-----------
+Reference: https://documentation.onesignal.com/reference/view-device
 
 .. code:: python
 
-    onesignal_response = onesignal_client.track_open("notification_id", track_body={"opened": True})
+    response = client.view_device('device-id')
 
-Licence
+view_devices
+------------
+Reference: https://documentation.onesignal.com/reference/view-devices
+
+.. code:: python
+
+    request_query = {'limit': 1}
+    response = client.view_devices(request_query)
+
+    // or no query
+    response = client.view_devices()
+
+add_device
+----------
+Reference: https://documentation.onesignal.com/reference/add-a-device
+
+.. code:: python
+
+    body = {
+        'device_type': 1,
+        'identifier': '7a8bbbb00000'
+    }
+    response = client.add_device(body)
+
+edit_device
+-----------
+Reference: https://documentation.onesignal.com/reference/edit-device
+
+.. code:: python
+
+    body = {
+        'device_type': 1,
+        'identifier': '7a8bbbb00000'
+    }
+    response = client.edit_device('2ada581e-1380-4967-bcd2-2bb4457d6171', body)
+
+edit_tags
+---------
+Reference: https://documentation.onesignal.com/reference/edit-tags-with-external-user-id
+
+.. code:: python
+
+    body = {
+        'tags': {
+            'foo': '',
+            'bar': 'new_value',
+        }
+    }
+    response = client.edit_tags('f0f0f0f0', body)
+
+new_session
+-----------
+Reference: https://documentation.onesignal.com/reference/new-session
+
+.. code:: python
+
+    body = {
+        'language': 'de',
+        'timezone': -28800
+    }
+    response = client.new_session('foo-device-id', body)
+
+new_purchase
+------------
+Reference: https://documentation.onesignal.com/reference/new-purchase
+
+.. code:: python
+
+    body = {
+        'purchases': [
+            {'sku': 'SKU123', 'iso': 'EUR'}
+        ]
+    }
+    response = client.new_purchase('foo-device-id', body)
+
+csv_export
+----------
+Reference: https://documentation.onesignal.com/reference/csv-export
+
+.. code:: python
+
+    body = {
+        'extra_fields': ['country', 'location'],
+        'last_active_since': '1469392779',
+    }
+    response = client.csv_export(body)
+
+create_segment
+--------------
+Reference: https://documentation.onesignal.com/reference/create-segments
+
+.. code:: python
+
+    body = {
+        'name': 'new-segment',
+        'filters': [{'field': 'session_count', 'relation': '>', 'value': 1}],
+    }
+    response = client.create_segment(body)
+
+delete_segment
+--------------
+Reference: https://documentation.onesignal.com/reference/delete-segments
+
+.. code:: python
+
+    response = client.delete_segment('segment-id-1')
+
+view_outcomes
+-------------
+Reference: https://documentation.onesignal.com/reference/view-outcomes
+
+.. code:: python
+
+    extra_http_params = {
+        'outcome_platforms': 0
+    }
+    outcome_names = ['os__click.count']
+    response = client.view_outcomes(outcome_names, extra_http_params)
+
+view_apps
+---------
+Reference: https://documentation.onesignal.com/reference/view-apps-apps
+
+Requires `user_auth_key`!
+
+.. code:: python
+
+    response = client.view_apps()
+
+view_app
+--------
+Reference: https://documentation.onesignal.com/reference/view-an-app
+
+Requires `user_auth_key`!
+
+.. code:: python
+
+    response = client.view_app('034744e7-4eb-1c6a647e47b')
+
+create_app
+----------
+Reference: https://documentation.onesignal.com/reference/create-an-app
+
+Requires `user_auth_key`!
+
+.. code:: python
+
+     app_body = {
+        'name': 'new-android-app',
+        'apns_env': 'production',
+    }
+    response = client.create_app(app_body)
+
+update_app
+----------
+Reference: https://documentation.onesignal.com/reference/update-an-app
+
+Requires `user_auth_key`!
+
+.. code:: python
+
+     app_body = {
+        'name': 'new-app',
+    }
+    response = client.update_app('f33c318b-6c99', app_body)
+
+License
 -------
 
 This project is under the MIT license.

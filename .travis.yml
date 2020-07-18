@@ -1,0 +1,31 @@
+language: python
+cache: false
+python:
+- 3.6
+- 3.7
+- 3.8
+- pypy3
+jobs:
+  fast_finish: true
+  include:
+  - python: 3.8
+    name: Static code analysis, flake8 and isort
+    env: TOXENV=qa
+  - stage: deploy
+    python: 3.8
+    deploy:
+      provider: pypi
+      distributions: sdist bdist_wheel
+      skip_existing: true
+      username: __token__
+      password:
+        secure: 4oIY4FNBetPGbaFTnl7GScomY9LIVuYjs+YSRtXSpGAW0tGcJB73+628f1tZyfyE8z08inxz0lT8Su8wrFyby1ouDRxEWbAssRbiD58JkV5tZgf+ZXsyG5fYlnw4HeD6Jj4Bd+aLdsbVbr5725eeb75/T8MZ5Hql/9mGHU6HfTNLyUp0hhN2ZEBCllD9ryO/1MdloOAyvQGwPfWLVHUHSA0TcF1UUzPzzEYpuIMkAAXR8np2pmvhtGpB0EOESDznCYZ8cGpA/OgT9PemGlHJeauOb/PUm3r4qGwuPGdtGHBFQhXLS/UxD0LesjwVfRB0BLGhwxbvI6zEqH1Z9esvgfPp5heK5ZvP4RFQogCMSeQoyTvve6KuemaaqAeoAbdvTASwaTh49NX3CDPlm9blNb+8MLyTU1h0ZD1rBG3iIPwSxGk63XhVmKQeLoeZIl8hPkOELuBhZrm1j5pveWF45KecJKom5lgMevcZ0E4q0C0PnQK2AqOKMdyBuNBYDFuBKzo6t8t6i97B0O2cJf0OptSV3smhWy/MPHJima64o5j23Da24x87Hv9624+tSaHOqvPsOU7GMkXy60OAFcuJleNvscbsNg1cMB6wCKwg3bqolXOXnSe+WsLqSxffpsM2eQJS9u0XWleYuVaySGHjSNxTfNUof4JdGVxOfSFuN7o=
+      on:
+        branch: master
+        tags: true
+install:
+- pip install tox-travis codecov
+script:
+- tox
+after_success:
+- codecov
