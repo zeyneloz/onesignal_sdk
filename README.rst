@@ -7,6 +7,9 @@ onesignal_sdk
 .. image:: https://img.shields.io/pypi/v/onesignal-sdk.svg
     :target: https://pypi.org/project/onesignal-sdk/
 
+.. image:: https://img.shields.io/pypi/dm/onesignal-sdk
+    :target: https://pypi.org/project/onesignal-sdk/
+
 .. image:: https://travis-ci.com/zeyneloz/onesignal_sdk.svg?branch=master
     :target: https://travis-ci.com/zeyneloz/onesignal_sdk
 
